@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>{% block title %}Gestio{% endblock %}</title>
+
+<!-- Tailwind CDN (modo desarrollo) -->
+<script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+
+<!-- Colores Gestio -->
+<script>
+    tailwind.config = {
+        theme: {
+        extend: {
+        colors: {
+            brandDark: "#33312F",
+            brandGreen: "#558871",
+            brandRust: "#C3675B",
+        },
+        },
+    },
+    };
+</script>
+</head>
+<body class="min-h-screen bg-gray-50 flex">
+
+<!-- Sidebar simple -->
+<aside class="w-56 border-r bg-white p-4">
+    <img src="{{ url_for('static', filename='img/gestio_transparente.png') }}"
+    alt="Gestio logo"
+    class="w-[160px] h-auto mx-auto mb-6" />
+    <nav class="space-y-1">
+        <a href="/panel/productos" class="block px-3 py-2 rounded hover:bg-gray-100">Productos</a>
+        <a href="/panel/dashboard" class="block px-3 py-2 rounded hover:bg-gray-100">Dashboard</a>
+        <a href="/panel/alertas"   class="block px-3 py-2 rounded hover:bg-gray-100">Alertas</a> 
+    </nav>
+</aside>
+
+<!-- Contenido -->
+<main class="flex-1 p-6">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="space-y-2 mb-4">
+            {% for category, msg in messages %}
+            <div class="rounded px-4 py-2 text-sm
+                        {% if category == 'success' %} bg-green-100 text-green-800
+                        {% elif category == 'error' %} bg-red-100 text-red-800
+                        {% else %} bg-gray-100 text-gray-700 {% endif %}">
+            {{ msg }}
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</main>  
+
+</body>
+</html>

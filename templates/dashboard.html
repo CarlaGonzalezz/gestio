@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | Gestio{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-semibold text-brandDark mb-6">Dashboard</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-white border rounded p-4">
+    <p class="text-sm text-gray-500">Productos</p>
+    <p class="text-2xl font-semibold">{{ total_productos }}</p>
+</div>
+<div class="bg-white border rounded p-4">
+    <p class="text-sm text-gray-500">Bajo stock (&lt; {{ umbral }})</p>
+    <p class="text-2xl font-semibold">{{ bajo_stock }}</p>
+</div>
+<div class="bg-white border rounded p-4">
+    <p class="text-sm text-gray-500">Valor inventario</p>
+    <p class="text-2xl font-semibold">$ {{ '%.2f'|format(valor_inventario|default(0)) }}</p>
+</div>
+</div>
+
+<h3 class="text-lg font-medium mt-6 mb-2">Top 5 con menos stock</h3>
+<table class="w-full text-sm border">
+    <thead class="bg-gray-100 text-left">
+    <tr>
+        <th class="p-2">Producto</th>
+        <th class="p-2">Stock</th>
+    </tr>
+    </thead>
+<tbody>
+    {% for item in top_bajo_stock %}
+    <tr class="border-t">
+        <td class="p-2">{{ item.nombre }}</td>
+        <td class="p-2">{{ item.stock }}</td>
+    </tr>
+    {% else %}
+    <tr>
+        <td colspan="2" class="p-4 text-center text-gray-500">No hay datos</td>
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
+{% endblock %}

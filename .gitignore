@@ -1,0 +1,14 @@
+# crea/actualiza .gitignore
+@"
+venv/
+__pycache__/
+.env
+serviceAccountKey.json
+"@ | Out-File -Encoding utf8 .gitignore
+
+# archivo de ejemplo (no sensible)
+@"
+SECRET_KEY=CHANGEME
+SERVICE_ACCOUNT_FILE=serviceAccountKey.json
+STOCK_THRESHOLD=5
+"@ | Out-File -Encoding utf8 .env.example

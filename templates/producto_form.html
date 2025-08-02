@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{% if editar %}Editar producto{% else %}Nuevo producto{% endif %} | Gestio{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-semibold text-brandDark mb-6">
+    {% if editar %}Editar producto{% else %}Nuevo producto{% endif %}
+</h2>
+<form
+    method="POST"
+    action="{% if editar %}{{ url_for('editar_producto_form', doc_id=doc_id) }}{% else %}{{ url_for('nuevo_producto_form') }}{% endif %}"
+    class="max-w-md space-y-4"
+>
+<div>
+    <label class="block mb-1 font-medium" for="nombre">Nombre</label>
+    <input id="nombre" name="nombre" type="text" required
+        class="w-full border rounded px-3 py-2"
+        placeholder="Ej: Yerba Mate 1 kg"
+        value="{{ nombre|default('') }}">
+</div>
+<div>
+    <label class="block mb-1 font-medium" for="precio">Precio</label>
+    <input id="precio" name="precio" type="number" step="0.01" required
+        class="w-full border rounded px-3 py-2"
+        placeholder="Ej: 1800.00"
+        value="{{ precio|default('') }}">
+</div>
+<div>
+    <label class="block mb-1 font-medium" for="stock">Stock</label>
+    <input id="stock" name="stock" type="number" required
+        class="w-full border rounded px-3 py-2"
+        placeholder="Ej: 50"
+        value="{{ stock|default('') }}">
+</div>
+<div class="flex items-center gap-2">
+    <button class="bg-brandGreen text-white px-4 py-2 rounded hover:bg-brandGreen/90">
+        {% if editar %}Guardar cambios{% else %}Guardar{% endif %}
+    </button>
+    <a href="{{ url_for('panel_productos') }}" class="text-gray-600 hover:underline">Cancelar</a>
+</div>
+</form>
+{% endblock %}
+

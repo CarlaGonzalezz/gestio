@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Productos | Gestio{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-semibold text-brandDark mb-4">Productos</h2>
+
+<div class="flex justify-end mb-4">
+    <a href="/panel/productos/nuevo"
+        class="inline-block bg-brandGreen text-white px-4 py-2 rounded hover:bg-brandGreen/90">
+    + Agregar producto
+    </a>
+</div>
+
+<table class="w-full text-sm border">
+    <thead class="bg-gray-100 text-left">
+    <tr>
+        <th class="p-2">Nombre</th>
+        <th class="p-2">Precio</th>
+        <th class="p-2">Stock</th>
+        <th class="p-2 w-28"></th> 
+    </tr>
+</thead>
+<tbody>
+    {% for p in productos %}
+    <tr class="border-t">
+        <td class="p-2">{{ p.nombre }}</td>
+        <td class="p-2">${{ p.precio }}</td>
+        <td class="p-2">{{ p.stock }}</td>
+        <!-- Acciones -->
+        <td class="p-2 flex gap-2">
+        <!-- Editar -->
+        <a href="/panel/productos/{{ p.id }}/editar"
+            class="text-sm text-brandGreen hover:underline">
+            Editar
+        </a>
+        <!-- Eliminar (form POST) -->
+        <form action="/panel/productos/{{ p.id }}/eliminar" method="post"
+                onsubmit="return confirm('¿Eliminar este producto?');">
+            <button type="submit"
+                    class="text-sm text-red-600 hover:underline">
+            Eliminar
+            </button>
+        </form>
+    </td>
+    </tr>
+    {% else %}
+    <tr>
+        <td colspan="4" class="p-4 text-center text-gray-500">Sin productos</td>
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
+{% endblock %}
+
