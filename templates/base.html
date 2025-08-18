@@ -6,7 +6,7 @@
 
 <title>{% block title %}Gestio{% endblock %}</title>
 
-<!-- Tailwind CDN (modo desarrollo) -->
+<!-- Tailwind CDN (modo desarrollo) -->
 <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
 
 <!-- Colores Gestio -->
@@ -24,22 +24,48 @@
     };
 </script>
 </head>
-<body class="min-h-screen bg-gray-50 flex">
 
+{# Si está logueada => layout con sidebar (flex)
+   Si NO => layout centrado (grid place-items-center) #}
+<body class="min-h-screen bg-gray-50 {% if current_user.is_authenticated %}flex{% else %}grid place-items-center{% endif %}">
+
+{% if current_user.is_authenticated %}
 <!-- Sidebar simple -->
 <aside class="w-56 border-r bg-white p-4">
     <img src="{{ url_for('static', filename='img/gestio_transparente.png') }}"
-    alt="Gestio logo"
-    class="w-[160px] h-auto mx-auto mb-6" />
+         alt="Gestio logo"
+         class="w-[160px] h-auto mx-auto mb-6" />
     <nav class="space-y-1">
+        <a href="/panel/caja" class="block px-3 py-2 rounded hover:bg-gray-100">Caja</a>
+        <a href="/panel/ventas" class="block px-3 py-2 rounded hover:bg-gray-100">Ventas</a>
         <a href="/panel/productos" class="block px-3 py-2 rounded hover:bg-gray-100">Productos</a>
         <a href="/panel/dashboard" class="block px-3 py-2 rounded hover:bg-gray-100">Dashboard</a>
-        <a href="/panel/alertas"   class="block px-3 py-2 rounded hover:bg-gray-100">Alertas</a> 
+        <a href="/panel/alertas"   class="block px-3 py-2 rounded hover:bg-gray-100">Alertas</a>
+
+        {% if current_user.is_authenticated %}
+        <div class="mt-6 text-sm text-gray-600 px-3">
+          {{ current_user.email }} · <a href="/logout" class="underline">Salir</a>
+        </div>
+        {% else %}
+        <div class="mt-6 text-sm text-gray-600 px-3">
+          <a href="/login" class="underline">Ingresar</a>
+        </div>
+        {% endif %}
     </nav>
 </aside>
+{% endif %}
 
 <!-- Contenido -->
-<main class="flex-1 p-6">
+<main class="{% if current_user.is_authenticated %}flex-1 p-6{% else %}w-full max-w-sm p-6{% endif %}">
+
+    {# Logo arriba del login cuando NO hay sesión #}
+    {% if not current_user.is_authenticated %}
+      <div class="flex flex-col items-center mb-6">
+        <img src="{{ url_for('static', filename='img/gestio_transparente.png') }}"
+             alt="Gestio" class="h-28 w-auto mb-2">
+      </div>
+    {% endif %}
+
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         <div class="space-y-2 mb-4">
@@ -48,14 +74,16 @@
                         {% if category == 'success' %} bg-green-100 text-green-800
                         {% elif category == 'error' %} bg-red-100 text-red-800
                         {% else %} bg-gray-100 text-gray-700 {% endif %}">
-            {{ msg }}
+              {{ msg }}
             </div>
-        {% endfor %}
+            {% endfor %}
         </div>
-    {% endif %}
+        {% endif %}
     {% endwith %}
+
     {% block content %}{% endblock %}
-</main>  
+</main>
 
 </body>
 </html>
+

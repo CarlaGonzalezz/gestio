@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Ventas | Gestio{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-semibold text-brandDark mb-4">Ventas</h2>
+
+<form method="get" class="flex items-end gap-3 mb-4">
+<div>
+    <label class="block text-sm mb-1">Desde</label>
+    <input type="date" name="from" value="{{ f }}" class="border rounded px-3 py-2">
+</div>
+<div>
+    <label class="block text-sm mb-1">Hasta</label>
+    <input type="date" name="to" value="{{ t }}" class="border rounded px-3 py-2">
+</div>
+    <button class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700">Filtrar</button>
+    <a href="/panel/ventas" class="px-4 py-2 rounded border hover:bg-gray-100">Limpiar</a>
+    <a href="/panel/ventas.csv?from={{ f }}&to={{ t }}" class="ml-auto px-4 py-2 rounded border hover:bg-gray-100">
+    Exportar CSV</a>
+</form>
+
+<table class="w-full text-sm border">
+    <thead class="bg-gray-100 text-left">
+    <tr>
+        <th class="p-2">Fecha</th>
+        <th class="p-2">Items</th>
+        <th class="p-2">Total</th>
+        <th class="p-2">Acciones</th>
+    </tr>
+    </thead>
+<tbody>
+    {% if ventas %}
+        {% for v in ventas %}
+        <tr class="border-t">
+            <td class="p-2">{{ v.ts|fmtfecha }}</td>
+            <td class="p-2">{{ v.items_count }}</td>
+            <td class="p-2">${{ "%.2f"|format(v.total) }}</td>
+            <td class="p-2">
+            <a href="/panel/ventas/{{ v.id }}" class="text-blue-600 hover:underline">Ver</a>
+            </td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr><td colspan="4" class="p-4 text-center text-gray-500">Sin ventas</td></tr>
+    {% endif %}
+</tbody>
+</table>
+{% endblock %}

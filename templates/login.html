@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Ingresar | Gestio{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-semibold text-brandDark mb-4 text-center">Ingresar</h2>
+
+<form method="post" class="space-y-4">
+<div>
+    <label class="block text-sm mb-1">Email</label>
+    <input name="email" type="email" required class="w-full border rounded px-3 py-2" autocomplete="username">
+</div>
+<div>
+    <label class="block text-sm mb-1">Contraseña</label>
+    <input name="password" type="password" required class="w-full border rounded px-3 py-2" autocomplete="current-password">
+</div>
+<button class="w-full bg-brandGreen text-white px-4 py-2 rounded hover:bg-brandGreen/90">
+    Entrar
+</button>
+</form>
+{% endblock %}

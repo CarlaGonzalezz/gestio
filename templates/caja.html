@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Caja | Gestio{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-semibold text-brandDark mb-6">Caja</h2>
+
+<!-- Buscador / Escáner -->
+<div class="mb-4 space-y-2">
+    <label class="block font-medium" for="codigo">Código o nombre del producto</label>
+    <input id="codigo" type="text"
+            class="w-full border rounded px-3 py-2"
+            placeholder="Escanea o escribe y presiona Enter" />
+</div>
+
+<!-- Carrito -->
+<table class="w-full text-sm border mb-4">
+    <thead class="bg-gray-100 text-left">
+    <tr>
+        <th class="p-2">Producto</th>
+        <th class="p-2 w-20">Cant.</th>
+        <th class="p-2 w-24">Precio</th>
+        <th class="p-2 w-24">Subtotal</th>
+    </tr>
+    </thead>
+<tbody id="carritoBody">
+    <!-- filas dinámicas -->
+  </tbody>
+  <tfoot>
+    <tr class="border-t">
+      <td colspan="3" class="p-2 font-semibold text-right">Total</td>
+      <td class="p-2 font-semibold" id="total">$ 0.00</td>
+    </tr>
+  </tfoot>
+</table>
+
+<button id="btnCobrar"
+        class="bg-brandGreen text-white px-6 py-2 rounded hover:bg-brandGreen/90 disabled:opacity-50"
+        disabled> Cobrar
+</button>
+
+<script>
+  /* --------- refs DOM --------- */
+  const carrito     = [];
+  const input       = document.getElementById("codigo");
+  const carritoBody = document.getElementById("carritoBody");
+  const totalEl     = document.getElementById("total");
+  const btnCobrar   = document.getElementById("btnCobrar");
+  
+  /* --------- render carrito --------- */
+  function renderCarrito() {
+    carritoBody.innerHTML = "";
+    let total = 0;
+  
+    carrito.forEach(item => {
+      total += item.precio * item.cantidad;
+      carritoBody.insertAdjacentHTML("beforeend", `
+        <tr class="border-t">
+          <td class="p-2">${item.nombre}</td>
+          <td class="p-2">${item.cantidad}</td>
+          <td class="p-2">$ ${Number(item.precio).toFixed(2)}</td>
+          <td class="p-2">$ ${(Number(item.precio) * item.cantidad).toFixed(2)}</td>
+        </tr>
+      `);
+    });
+  
+    totalEl.textContent = "$ " + total.toFixed(2);
+    btnCobrar.disabled  = carrito.length === 0;
+  }
+  
+  /* --------- buscar en backend --------- */
+  /* Regla: si el usuario tipea un código (ID exacto), también lo buscamos tal cual.
+     Pero para nombres, enviamos en minúsculas (nombre_lower). */
+  async function buscarProducto(q) {
+    const res = await fetch("/api/buscar_producto?q=" + encodeURIComponent(q));
+    if (!res.ok) return null;            // 404 -> no encontrado
+    return await res.json();             // { id, nombre, precio, stock, ... }
+  }
+  
+  /* --------- Enter en el input ---------- */
+  input.addEventListener("keydown", async (e) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+  
+    let value = input.value.trim();
+    if (!value) return;
+  
+    // 1) Intento por ID tal cual (escáner suele mandar el código exacto)
+    let prod = await buscarProducto(value);
+    // 2) Si no está, intento por nombre (minúsculas -> nombre_lower)
+    if (!prod) prod = await buscarProducto(value.toLowerCase());
+  
+    if (!prod) {
+      alert("Producto no encontrado");
+      return;
+    }
+  
+    const existente = carrito.find(p => p.id === prod.id);
+    if (existente) existente.cantidad += 1;
+    else carrito.push({ ...prod, cantidad: 1 });
+  
+    renderCarrito();
+    input.value = "";
+  });
+  
+  /* --------- Cobrar (POST /api/ventas) --------- */
+  btnCobrar.addEventListener("click", async () => {
+    const total = carrito.reduce((s, i) => s + Number(i.precio) * i.cantidad, 0);
+  
+    const res = await fetch("/api/ventas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: carrito, total })
+    });
+  
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: "Error" }));
+      alert("Error: " + (err.error || "no se pudo cobrar"));
+      return;
+    }
+  
+    alert("Venta registrada 👍");
+    carrito.length = 0;
+    renderCarrito();
+  });
+  </script>
+  
+    
+{% endblock %}
