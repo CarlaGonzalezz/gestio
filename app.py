@@ -15,7 +15,8 @@ from flask_login import (
 from werkzeug.security import check_password_hash
 
 from flask_cors import CORS
-from google.cloud import firestore 
+# ❌ QUITAR esta línea para evitar confusión:
+# from google.cloud import firestore
 
 # --- filtros Jinja -----------------------------------------------------------
 from datetime import datetime, timezone, timedelta
@@ -24,6 +25,7 @@ from flask import Response
 
 # .env
 import os
+import json  # <-- NUEVO
 from dotenv import load_dotenv
 
 # Firebase Admin SDK
@@ -43,10 +45,21 @@ CORS(app)  # habilita CORS en todas las rutas
 # ---------------------------------------------------------------------------
 
 # --- inicializar Firebase ---------------------------------------------------
-# El archivo serviceAccountKey.json debe estar en la misma carpeta
-# (o indicar la ruta en SERVICE_ACCOUNT_FILE dentro de .env)
-service_account_path = os.getenv("SERVICE_ACCOUNT_FILE", "serviceAccountKey.json")
-cred = credentials.Certificate(service_account_path)
+# En producción (Render) usamos FIREBASE_CREDENTIALS_JSON con el JSON completo.
+# En desarrollo local seguimos aceptando SERVICE_ACCOUNT_FILE (o serviceAccountKey.json por defecto).
+sa_json = os.getenv("FIREBASE_CREDENTIALS_JSON")
+
+if sa_json:
+    try:
+        cred_info = json.loads(sa_json)  # la variable contiene el JSON completo
+    except json.JSONDecodeError as e:
+        raise RuntimeError("FIREBASE_CREDENTIALS_JSON no es un JSON válido") from e
+    cred = credentials.Certificate(cred_info)
+else:
+    # Desarrollo local: archivo en disco
+    service_account_path = os.getenv("SERVICE_ACCOUNT_FILE", "serviceAccountKey.json")
+    cred = credentials.Certificate(service_account_path)
+
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 # ---------------------------------------------------------------------------
