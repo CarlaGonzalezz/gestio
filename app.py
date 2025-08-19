@@ -70,7 +70,11 @@ db = firestore.client()
 
 @app.route("/")
 def home():
-    return "Gestio – Panel Web (Flask)"
+    # Si ya hay sesión, mandamos directo al panel (elegí la vista que prefieras)
+    if current_user.is_authenticated:
+        return redirect(url_for("panel_productos")) 
+    # Si no hay sesión, mandamos al login
+    return redirect(url_for("login"))
 
 
 # ----- API JSON + creación (programática) -----------------------------------
