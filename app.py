@@ -25,7 +25,7 @@ from flask import Response
 
 # .env
 import os
-import json  # <-- NUEVO
+import json 
 from dotenv import load_dotenv
 
 # Firebase Admin SDK
@@ -527,12 +527,17 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id: str):
-    # user_id será el id del doc (usamos email como id en el script)
-    doc = db.collection("usuarios").document(user_id).get()
-    if not doc.exists:
+    # user_id = email en minúsculas
+    snap = db.collection("usuarios").document(user_id).get()
+    if not snap.exists:
         return None
-    data = doc.to_dict() or {}
-    return User(doc.id, data.get("email",""), data.get("rol","user"), data.get("activo", True))
+    d = snap.to_dict() or {}
+    return User(
+        snap.id,
+        d.get("email", user_id),
+        d.get("rol", "user"),
+        d.get("activo", True),
+    )
 
 
 # ----- Rutas de Login/Logout --------------------------------------------------
@@ -541,27 +546,50 @@ def login():
     if request.method == "POST":
         email = (request.form.get("email") or "").strip().lower()
         password = request.form.get("password") or ""
+        remember = bool(request.form.get("remember"))  # si en el form agregás un checkbox name="remember"
 
+        # Si tus documentos de usuario usan el email (lowercase) como ID,
+        # esto es consistente:
         doc = db.collection("usuarios").document(email).get()
         if not doc.exists:
             flash("Usuario no encontrado.", "error")
-            return render_template("login.html"), 401
+            return render_template("login.html", email=email), 401
 
         data = doc.to_dict() or {}
         if not data.get("activo", True):
             flash("Usuario inactivo.", "error")
-            return render_template("login.html"), 403
+            return render_template("login.html", email=email), 403
 
-        if not check_password_hash(data.get("password_hash",""), password):
+        if not check_password_hash(data.get("password_hash", ""), password):
             flash("Credenciales inválidas.", "error")
-            return render_template("login.html"), 401
+            return render_template("login.html", email=email), 401
 
-        user = User(doc.id, data.get("email",""), data.get("rol","user"), data.get("activo",True))
-        login_user(user)
+        # Crear el objeto de sesión con rol
+        user = User(
+            doc.id,                          # <= user_id (email en minúsculas)
+            data.get("email", email),        # email visible
+            data.get("rol", "user"),         # rol
+            data.get("activo", True),
+        )
+
+        # Mantener sesión (persistente) si remember=True
+        login_user(user, remember=True)  # o remember=remember si agregás el checkbox
+
         flash("Bienvenido/a.", "success")
-        # redirige a donde intentaba entrar o al panel principal
-        next_url = request.args.get("next") or url_for("panel_productos")
-        return redirect(next_url)
+
+        # Redirección: respeta ?next= o según rol, o a productos por defecto
+        next_url = request.args.get("next")
+        if next_url:
+            return redirect(next_url)
+
+        # (Opcional) redirigir por rol
+        if user.rol == "admin":
+            return redirect(url_for("panel_dashboard"))
+        elif user.rol == "cajero":
+            return redirect(url_for("panel_caja"))
+
+        # por defecto
+        return redirect(url_for("panel_productos"))
 
     # GET
     return render_template("login.html")
@@ -572,6 +600,8 @@ def logout():
     logout_user()
     flash("Sesión cerrada.", "success")
     return redirect(url_for("login"))
+
+
 
 # ──────────────────────────────────
 # Arranque
